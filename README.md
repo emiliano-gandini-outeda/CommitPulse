@@ -61,18 +61,18 @@ The workflow runs automatically every minute to check for repository updates.
 - All repositories starred by the configured GitHub user
 
 ### Notification Criteria
-- New repositories (previously untracked)
-- Repositories with new commits (SHA mismatch)
-- Commits with file changes
+- New repositories (previously untracked).
+- Repositories with new commits (SHA mismatch).
+- Commits with file changes.
 
 ## Output
 
 WhatsApp notifications include:
-- Repository owner and name
-- Committer information
-- Concise summary of changes (AI-generated)
-- Commit message and main modifications
-- Direct link to the commit html page
+- Repository owner and name.
+- Committer information.
+- Concise summary of changes (AI-generated).
+- Commit message and main modifications.
+- Direct link to the commit html page.
 
 ## Data Privacy
 
