@@ -1,0 +1,671 @@
+{
+  "name": "Github Notif",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.github.com/users/emiliano-gandini-outeda/repos?per_page=100",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        176
+      ],
+      "id": "1eaa5e8c-3534-418d-b316-0c56aa3992ac",
+      "name": "Public Repos",
+      "credentials": {
+        "githubApi": {
+          "id": "3oql2lVUm4yOfxkV",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/users/emiliano-gandini-outeda/starred?per_page=100",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        368
+      ],
+      "id": "a6a1e74c-b77e-4d92-96a1-b52ab634effa",
+      "name": "Starred Repos",
+      "credentials": {
+        "githubApi": {
+          "id": "3oql2lVUm4yOfxkV",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allInput = $input.all();\n\nconst allRepos = allInput.map(item => ({\n  owner: item.json.owner.login,\n  repo: item.json.name\n}));\n\nreturn allRepos.map(r => ({ json: r }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        272
+      ],
+      "id": "e9239c6d-3229-4760-b81d-eba4be316fa6",
+      "name": "Repo Cleanup"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -704,
+        368
+      ],
+      "id": "f435eca8-5a17-4033-910e-f8058f4adf0c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/{{$json[\"owner\"]}}/{{$json[\"repo\"]}}/commits?per_page=1",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        192,
+        200
+      ],
+      "id": "a415a098-c624-4214-8ad9-c8e61bc408ab",
+      "name": "Commit Request",
+      "credentials": {
+        "githubApi": {
+          "id": "3oql2lVUm4yOfxkV",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tomar todos los items de entrada y devolver solo owner, repo, sha y html_url\nreturn $input.all().map(item => ({\n  json: {\n    owner: item.json.owner,\n    repo: item.json.repo,\n    sha: item.json.sha,\n    html_url: item.json.html_url,\n    commit_message: item.json.commit.message\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        272
+      ],
+      "id": "fa643117-c8ae-44f2-a1a5-f0ab03562f79",
+      "name": "Map Commits"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -256,
+        272
+      ],
+      "id": "1e65c5da-3354-49dd-9af2-dec1b4cf522f",
+      "name": "Public + Starred"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        272
+      ],
+      "id": "02435bfe-058f-4f93-ac77-b1e8708dc9b3",
+      "name": "Repo + Commits"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NmxaJpHLDd67PU5G",
+          "mode": "list",
+          "cachedResultName": "Github Tracking",
+          "cachedResultUrl": "/projects/Pf61PhppcQlVLO9Y/datatables/NmxaJpHLDd67PU5G"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "condition": "isNotEmpty"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        640,
+        536
+      ],
+      "id": "c169e36f-79dc-4de4-878e-027a011ae0dc",
+      "name": "Get Last Saved Commit"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        864,
+        368
+      ],
+      "id": "295a5f00-e956-4210-9c36-0f4c4f977367",
+      "name": "New + Old Commits"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all inputs (commits + table rows)\nconst all = $input.all();\n\n// Group by \"owner/repo\"\nconst grouped = {};\nfor (const item of all) {\n  const { owner, repo, sha, html_url, notification, commit_message } = item.json;\n  const key = `${owner}/${repo}`;\n  if (!grouped[key]) grouped[key] = [];\n  grouped[key].push({ owner, repo, sha, html_url, notification, commit_message });\n}\n\n// For each repo, decide the output\nconst results = [];\nfor (const key in grouped) {\n  const items = grouped[key];\n\n  if (items.length === 1) {\n    // New repo (only commit present, no table entry)\n    const { owner, repo, sha, html_url, commit_message } = items[0];\n    results.push({ \n      json: { owner, repo, sha, html_url, commit_message, notification: true } \n    });\n  } else {\n    // Repo exists in both commits + table\n    const commit = items.find(i => i.sha); // from commits\n    const table = items.find(i => i.notification !== undefined); // from table\n\n    const notification = commit.sha !== table.sha;\n    results.push({\n      json: { \n        owner: commit.owner, \n        repo: commit.repo, \n        sha: commit.sha, \n        html_url: commit.html_url, \n        commit_message: commit.commit_message || null,\n        notification \n      }\n    });\n  }\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        368
+      ],
+      "id": "f663fe28-fa9a-46ca-a64f-9fad22b57670",
+      "name": "Check Commits Diffs"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NmxaJpHLDd67PU5G",
+          "mode": "list",
+          "cachedResultName": "Github Tracking",
+          "cachedResultUrl": "/projects/Pf61PhppcQlVLO9Y/datatables/NmxaJpHLDd67PU5G"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "owner",
+              "keyValue": "={{ $json.owner }}"
+            },
+            {
+              "keyName": "repo",
+              "keyValue": "={{ $json.repo }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "notification": "={{ $json.notification }}",
+            "owner": "={{ $json.owner }}",
+            "repo": "={{ $json.repo }}",
+            "sha": "={{ $json.sha }}",
+            "html_url": "={{ $json.html_url }}",
+            "commit_message": "={{ $json.commit_message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "owner",
+              "displayName": "owner",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "repo",
+              "displayName": "repo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sha",
+              "displayName": "sha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "html_url",
+              "displayName": "html_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "notification",
+              "displayName": "notification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "commit_message",
+              "displayName": "commit_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        368
+      ],
+      "id": "a8069d0a-49a6-466d-bc2d-68f211e5ae75",
+      "name": "Save New Commits"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "799026853297065",
+        "recipientPhoneNumber": "+598 93315227",
+        "textBody": "={{ $json.content.parts[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        2784,
+        368
+      ],
+      "id": "0aa2e430-3007-44d3-a2cc-7a19e9d935fd",
+      "name": "Send message",
+      "webhookId": "138871de-b6ab-4edc-821f-210def7fdabb",
+      "retryOnFail": false,
+      "credentials": {
+        "whatsAppApi": {
+          "id": "6F28XTY9coM9qNjK",
+          "name": "WhatsApp account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d4929217-07c4-4376-806c-515a6697ad85",
+              "leftValue": "={{ $json.notification }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1536,
+        368
+      ],
+      "id": "ad7bce87-818f-4915-a394-532fcd929253",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1984,
+        368
+      ],
+      "id": "727ba6ff-295f-4041-99aa-6c9031686eb8",
+      "name": "Commit Info + Repo info"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/{{ $json.owner }}/{{ $json.repo }}/commits/{{ $json.sha }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        296
+      ],
+      "id": "dc58ebef-a2cf-4ae2-a085-eee4d078bb5f",
+      "name": "Commit Info Request",
+      "credentials": {
+        "githubApi": {
+          "id": "3oql2lVUm4yOfxkV",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nSummarize the following GitHub commit in a maximum of 3 lines for a WhatsApp notification.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nGenerate a concise summary highlighting the main changes.\n`;\n\n  return { json: { prompt } };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2208,
+        368
+      ],
+      "id": "2a06fa4d-be31-4781-aa15-9b04ab8d96c3",
+      "name": "Create Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an expert software engineer assistant. \nYour task is to read GitHub commits including the commit message and the list of changed files, and generate a detailed summary of the commit. \nThe summary must be:\n- Include the name of the repo owner, the repo name and the committer in the following format as a title: Committer made commit in owner/repo.\n- Clear and readable for a semi-technical audience.\n- Include the main changes made, without extra detail.\n- Less that 100 words.\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOuput everything in the same line.\n\nMake sure to mention the commiter. If commiter is an bot, say \"An Automated Maintainer\". \n\nUse the commiter username to mention him. Never say \"the commiter\" or \"a contributor\".\n\nNever add text formatting elements like \\n or things like \n\n{\n  \"summary\": ...\n}\n\nJust pure text.",
+              "role": "model"
+            },
+            {
+              "content": "={{$json.prompt}}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        2432,
+        368
+      ],
+      "id": "83d0479d-9532-4745-993f-e9b64f9d844a",
+      "name": "Create Message",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "aIM3dBDjAgkL5Z2S",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Public Repos": {
+      "main": [
+        [
+          {
+            "node": "Public + Starred",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Starred Repos": {
+      "main": [
+        [
+          {
+            "node": "Public + Starred",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Public Repos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Starred Repos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Last Saved Commit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repo Cleanup": {
+      "main": [
+        [
+          {
+            "node": "Commit Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Repo + Commits",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Commit Request": {
+      "main": [
+        [
+          {
+            "node": "Repo + Commits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Public + Starred": {
+      "main": [
+        [
+          {
+            "node": "Repo Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repo + Commits": {
+      "main": [
+        [
+          {
+            "node": "Map Commits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Commits": {
+      "main": [
+        [
+          {
+            "node": "New + Old Commits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Saved Commit": {
+      "main": [
+        [
+          {
+            "node": "New + Old Commits",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "New + Old Commits": {
+      "main": [
+        [
+          {
+            "node": "Check Commits Diffs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Commits Diffs": {
+      "main": [
+        [
+          {
+            "node": "Save New Commits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save New Commits": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Commit Info Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Commit Info + Repo info",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Commit Info + Repo info": {
+      "main": [
+        [
+          {
+            "node": "Create Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commit Info Request": {
+      "main": [
+        [
+          {
+            "node": "Commit Info + Repo info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Prompt": {
+      "main": [
+        [
+          {
+            "node": "Create Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Message": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1004cd28-f55a-4435-92d5-654b4ac05357",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
+  },
+  "id": "iqMUqrtHQQWVRi0q",
+  "tags": []
+}
