@@ -89,7 +89,7 @@
       "typeVersion": 4.2,
       "position": [
         192,
-        200
+        208
       ],
       "id": "a415a098-c624-4214-8ad9-c8e61bc408ab",
       "name": "Commit Request",
@@ -162,7 +162,7 @@
       "typeVersion": 1,
       "position": [
         640,
-        536
+        544
       ],
       "id": "c169e36f-79dc-4de4-878e-027a011ae0dc",
       "name": "Get Last Saved Commit"
@@ -305,14 +305,14 @@
         "operation": "send",
         "phoneNumberId": "799026853297065",
         "recipientPhoneNumber": "+598 93315227",
-        "textBody": "={{ $json.content.parts[0].text }}",
+        "textBody": "={{ $json.content.parts[0].text}}\n",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
       "position": [
-        2784,
-        368
+        2752,
+        464
       ],
       "id": "0aa2e430-3007-44d3-a2cc-7a19e9d935fd",
       "name": "Send message",
@@ -320,8 +320,8 @@
       "retryOnFail": false,
       "credentials": {
         "whatsAppApi": {
-          "id": "6F28XTY9coM9qNjK",
-          "name": "WhatsApp account 2"
+          "id": "izbB7GD58a0V1cr4",
+          "name": "WhatsApp account"
         }
       }
     },
@@ -368,8 +368,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1984,
-        368
+        2016,
+        160
       ],
       "id": "727ba6ff-295f-4041-99aa-6c9031686eb8",
       "name": "Commit Info + Repo info"
@@ -385,7 +385,7 @@
       "typeVersion": 4.2,
       "position": [
         1760,
-        296
+        304
       ],
       "id": "dc58ebef-a2cf-4ae2-a085-eee4d078bb5f",
       "name": "Commit Info Request",
@@ -398,7 +398,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nSummarize the following GitHub commit in a maximum of 3 lines for a WhatsApp notification.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nGenerate a concise summary highlighting the main changes.\n`;\n\n  return { json: { prompt } };\n});\n"
+        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nSummarize the following GitHub commit in a maximum of 5 lines for a WhatsApp notification.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nGenerate a concise summary highlighting the main changes.\n`;\n\n  return { json: { prompt } };\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -420,7 +420,7 @@
         "messages": {
           "values": [
             {
-              "content": "You are an expert software engineer assistant. \nYour task is to read GitHub commits including the commit message and the list of changed files, and generate a detailed summary of the commit. \nThe summary must be:\n- Include the name of the repo owner, the repo name and the committer in the following format as a title: Committer made commit in owner/repo.\n- Clear and readable for a semi-technical audience.\n- Include the main changes made, without extra detail.\n- Less that 100 words.\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOuput everything in the same line.\n\nMake sure to mention the commiter. If commiter is an bot, say \"An Automated Maintainer\". \n\nUse the commiter username to mention him. Never say \"the commiter\" or \"a contributor\".\n\nNever add text formatting elements like \\n or things like \n\n{\n  \"summary\": ...\n}\n\nJust pure text.",
+              "content": "You are an expert software engineer assistant. \nYour task is to read GitHub commits including the commit message and the list of changed files, and generate a detailed summary of the commit. \nThe summary must be:\n- Include the name of the repo owner, the repo name and the committer in the following format as a title: Committer made commit in owner/repo.\n- Clear and readable for a semi-technical audience.\n- Include the main changes made, without extra detail.\n- Less that 100 words.\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOuput everything in the same line.\n\nMake sure to mention the commiter. If commiter is an bot, say \"An Automated Maintainer\". \n\nUse the commiter username to mention him. Never say \"the commiter\" or \"a contributor\".\n\nNever add text formatting elements like \\n or things like \n\n{\n  \"summary\": ...\n}\n\nJust pure text.\n\nInsert the commit URL at the end of the message.",
               "role": "model"
             },
             {
@@ -659,9 +659,11 @@
   },
   "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "timeSavedPerExecution": 35
   },
-  "versionId": "1004cd28-f55a-4435-92d5-654b4ac05357",
+  "versionId": "99c39c55-1f77-4028-8a0a-be9ac6deef3f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
