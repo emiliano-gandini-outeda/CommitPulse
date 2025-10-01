@@ -419,7 +419,7 @@
         "messages": {
           "values": [
             {
-              "content": "You are an expert software engineer assistant. \nYour task is to read GitHub commits including the commit message and the list of changed files, and generate a detailed summary of the commit. \nThe summary must be:\n- Include the name of the repo owner, the repo name and the committer in the following format as a title: Committer made commit in owner/repo.\n- Clear and readable for a semi-technical audience.\n- Include the main changes made, without extra detail.\n- Less that 100 words.\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOuput everything in the same line.\n\nMake sure to mention the commiter. If commiter is an bot, say \"An Automated Maintainer\". \n\nUse the commiter username to mention him. Never say \"the commiter\" or \"a contributor\".\n\nJust pure text.\n\nInsert the commit URL at the end of the message.",
+              "content": "You are an expert software engineer assistant. \nYour task is to read GitHub commits including the commit message and the list of changed files, and generate a detailed summary of the commit. \nThe summary must be:\n- Include the name of the repo owner, the repo name and the committer in the following format as a title: Committer made commit in owner/repo.\n- Clear and readable for a semi-technical audience.\n- Include the main changes made, without extra detail.\n- Less that 100 words.\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOutput everything in the same line.\n\nMake sure to mention the committer, doesn't matter if its a person or a bot, just pass the committer's name as you receive it.\n\nUse the committer username to mention him. Never say \"the committer\" or \"a contributor\".\n\nJust pure text. Don't use format elements like \"\\n\".\n\nInsert the commit URL at the end of the message.",
               "role": "model"
             },
             {
@@ -662,7 +662,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 35
   },
-  "versionId": "64fce35c-2ee1-4103-89ea-a8076453c0d9",
+  "versionId": "44651a23-2a07-48a6-8b73-592eae860a10",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
