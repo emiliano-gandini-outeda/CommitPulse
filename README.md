@@ -85,6 +85,7 @@ The workflow automatically maintains commit history in the data table and only n
 ## Incoming Features
 
 - Track multiple commits from same repository.
+- Track different branches of the same repository.
 
 # License
 
