@@ -1,5 +1,5 @@
 {
-  "name": "Github Notif",
+  "name": "Github-Notif",
   "nodes": [
     {
       "parameters": {
@@ -12,7 +12,7 @@
       "typeVersion": 4.2,
       "position": [
         -480,
-        176
+        160
       ],
       "id": "1eaa5e8c-3534-418d-b316-0c56aa3992ac",
       "name": "Public Repos",
@@ -34,7 +34,7 @@
       "typeVersion": 4.2,
       "position": [
         -480,
-        368
+        352
       ],
       "id": "a6a1e74c-b77e-4d92-96a1-b52ab634effa",
       "name": "Starred Repos",
@@ -53,7 +53,7 @@
       "typeVersion": 2,
       "position": [
         -32,
-        272
+        256
       ],
       "id": "e9239c6d-3229-4760-b81d-eba4be316fa6",
       "name": "Repo Cleanup"
@@ -63,8 +63,7 @@
         "rule": {
           "interval": [
             {
-              "field": "minutes",
-              "minutesInterval": 1
+              "field": "minutes"
             }
           ]
         }
@@ -73,7 +72,7 @@
       "typeVersion": 1.2,
       "position": [
         -704,
-        368
+        352
       ],
       "id": "f435eca8-5a17-4033-910e-f8058f4adf0c",
       "name": "Schedule Trigger"
@@ -89,7 +88,7 @@
       "typeVersion": 4.2,
       "position": [
         192,
-        208
+        184
       ],
       "id": "a415a098-c624-4214-8ad9-c8e61bc408ab",
       "name": "Commit Request",
@@ -108,7 +107,7 @@
       "typeVersion": 2,
       "position": [
         640,
-        272
+        256
       ],
       "id": "fa643117-c8ae-44f2-a1a5-f0ab03562f79",
       "name": "Map Commits"
@@ -119,7 +118,7 @@
       "typeVersion": 3.2,
       "position": [
         -256,
-        272
+        256
       ],
       "id": "1e65c5da-3354-49dd-9af2-dec1b4cf522f",
       "name": "Public + Starred"
@@ -134,7 +133,7 @@
       "typeVersion": 3.2,
       "position": [
         416,
-        272
+        256
       ],
       "id": "02435bfe-058f-4f93-ac77-b1e8708dc9b3",
       "name": "Repo + Commits"
@@ -162,7 +161,7 @@
       "typeVersion": 1,
       "position": [
         640,
-        544
+        520
       ],
       "id": "c169e36f-79dc-4de4-878e-027a011ae0dc",
       "name": "Get Last Saved Commit"
@@ -173,7 +172,7 @@
       "typeVersion": 3.2,
       "position": [
         864,
-        368
+        352
       ],
       "id": "295a5f00-e956-4210-9c36-0f4c4f977367",
       "name": "New + Old Commits"
@@ -186,7 +185,7 @@
       "typeVersion": 2,
       "position": [
         1088,
-        368
+        352
       ],
       "id": "f663fe28-fa9a-46ca-a64f-9fad22b57670",
       "name": "Check Commits Diffs"
@@ -295,7 +294,7 @@
       "typeVersion": 1,
       "position": [
         1312,
-        368
+        352
       ],
       "id": "a8069d0a-49a6-466d-bc2d-68f211e5ae75",
       "name": "Save New Commits"
@@ -311,8 +310,8 @@
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
       "position": [
-        2752,
-        464
+        2784,
+        352
       ],
       "id": "0aa2e430-3007-44d3-a2cc-7a19e9d935fd",
       "name": "Send message",
@@ -354,7 +353,7 @@
       "typeVersion": 2.2,
       "position": [
         1536,
-        368
+        352
       ],
       "id": "ad7bce87-818f-4915-a394-532fcd929253",
       "name": "Filter"
@@ -368,8 +367,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2016,
-        160
+        1984,
+        352
       ],
       "id": "727ba6ff-295f-4041-99aa-6c9031686eb8",
       "name": "Commit Info + Repo info"
@@ -385,7 +384,7 @@
       "typeVersion": 4.2,
       "position": [
         1760,
-        304
+        424
       ],
       "id": "dc58ebef-a2cf-4ae2-a085-eee4d078bb5f",
       "name": "Commit Info Request",
@@ -398,13 +397,13 @@
     },
     {
       "parameters": {
-        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nSummarize the following GitHub commit in a maximum of 5 lines for a WhatsApp notification.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nGenerate a concise summary highlighting the main changes.\n`;\n\n  return { json: { prompt } };\n});\n"
+        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files, commit } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nSummarize the following GitHub commit in a maximum of 5 lines for a WhatsApp notification.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommitter: ${commit.committer.name}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nGenerate a concise summary highlighting the main changes.\n\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOuput everything in the same line.\n\nMake sure to mention the commiter. If commiter is an bot, say \"An Automated Maintainer\". \n\nUse the commiter username to mention him. Never say \"the commiter\" or \"a contributor\".\n\nJust pure text.\n\nInsert the commit URL at the end of the message.\n`;\n\n  return { json: { prompt } };\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         2208,
-        368
+        352
       ],
       "id": "2a06fa4d-be31-4781-aa15-9b04ab8d96c3",
       "name": "Create Prompt"
@@ -420,7 +419,7 @@
         "messages": {
           "values": [
             {
-              "content": "You are an expert software engineer assistant. \nYour task is to read GitHub commits including the commit message and the list of changed files, and generate a detailed summary of the commit. \nThe summary must be:\n- Include the name of the repo owner, the repo name and the committer in the following format as a title: Committer made commit in owner/repo.\n- Clear and readable for a semi-technical audience.\n- Include the main changes made, without extra detail.\n- Less that 100 words.\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOuput everything in the same line.\n\nMake sure to mention the commiter. If commiter is an bot, say \"An Automated Maintainer\". \n\nUse the commiter username to mention him. Never say \"the commiter\" or \"a contributor\".\n\nNever add text formatting elements like \\n or things like \n\n{\n  \"summary\": ...\n}\n\nJust pure text.\n\nInsert the commit URL at the end of the message.",
+              "content": "You are an expert software engineer assistant. \nYour task is to read GitHub commits including the commit message and the list of changed files, and generate a detailed summary of the commit. \nThe summary must be:\n- Include the name of the repo owner, the repo name and the committer in the following format as a title: Committer made commit in owner/repo.\n- Clear and readable for a semi-technical audience.\n- Include the main changes made, without extra detail.\n- Less that 100 words.\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOuput everything in the same line.\n\nMake sure to mention the commiter. If commiter is an bot, say \"An Automated Maintainer\". \n\nUse the commiter username to mention him. Never say \"the commiter\" or \"a contributor\".\n\nJust pure text.\n\nInsert the commit URL at the end of the message.",
               "role": "model"
             },
             {
@@ -435,7 +434,7 @@
       "typeVersion": 1,
       "position": [
         2432,
-        368
+        352
       ],
       "id": "83d0479d-9532-4745-993f-e9b64f9d844a",
       "name": "Create Message",
@@ -663,7 +662,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 35
   },
-  "versionId": "99c39c55-1f77-4028-8a0a-be9ac6deef3f",
+  "versionId": "64fce35c-2ee1-4103-89ea-a8076453c0d9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
