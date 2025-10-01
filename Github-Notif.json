@@ -88,7 +88,7 @@
       "typeVersion": 4.2,
       "position": [
         192,
-        184
+        192
       ],
       "id": "a415a098-c624-4214-8ad9-c8e61bc408ab",
       "name": "Commit Request",
@@ -161,7 +161,7 @@
       "typeVersion": 1,
       "position": [
         640,
-        520
+        528
       ],
       "id": "c169e36f-79dc-4de4-878e-027a011ae0dc",
       "name": "Get Last Saved Commit"
@@ -304,13 +304,13 @@
         "operation": "send",
         "phoneNumberId": "799026853297065",
         "recipientPhoneNumber": "+598 93315227",
-        "textBody": "={{ $json.content.parts[0].text}}\n",
+        "textBody": "={{ $json.cleanedText }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
       "position": [
-        2784,
+        3008,
         352
       ],
       "id": "0aa2e430-3007-44d3-a2cc-7a19e9d935fd",
@@ -384,7 +384,7 @@
       "typeVersion": 4.2,
       "position": [
         1760,
-        424
+        432
       ],
       "id": "dc58ebef-a2cf-4ae2-a085-eee4d078bb5f",
       "name": "Commit Info Request",
@@ -444,6 +444,19 @@
           "name": "Google Gemini(PaLM) Api account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    const text = item.json.content?.parts?.[0]?.text;\n    if (!text) return { json: { cleanedText: \"\" } };\n\n    // Remove first and last quote if they exist\n    let cleaned = text;\n    if (cleaned.startsWith('\"') && cleaned.endsWith('\"')) {\n        cleaned = cleaned.slice(1, -1);\n    }\n\n    return { json: { cleanedText: cleaned } };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2784,
+        352
+      ],
+      "id": "db9d391a-7b01-4c04-a016-751beb7784f2",
+      "name": "Format Output"
     }
   ],
   "pinData": {},
@@ -648,6 +661,17 @@
       "main": [
         [
           {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output": {
+      "main": [
+        [
+          {
             "node": "Send message",
             "type": "main",
             "index": 0
@@ -662,7 +686,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 35
   },
-  "versionId": "4d92d2bb-70b1-4878-bcd2-320c52eea251",
+  "versionId": "6bd4ae4b-5fed-4cd1-9314-4e82092a82b4",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
