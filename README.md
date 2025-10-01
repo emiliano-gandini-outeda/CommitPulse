@@ -82,6 +82,10 @@ Sensitive information including phone numbers and API credentials are stored sec
 
 The workflow automatically maintains commit history in the data table and only notifies on actual changes, preventing duplicate notifications for the same commits.
 
+## Incoming Features
+
+- Track multiple commits from same repository.
+
 # License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE)
