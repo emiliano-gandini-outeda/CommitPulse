@@ -72,7 +72,7 @@ WhatsApp notifications include:
 - Committer information
 - Concise summary of changes (AI-generated)
 - Commit message and main modifications
-- Direct link to the commit
+- Direct link to the commit html page
 
 ## Data Privacy
 
