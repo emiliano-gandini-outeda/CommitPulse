@@ -319,8 +319,8 @@
       "retryOnFail": false,
       "credentials": {
         "whatsAppApi": {
-          "id": "izbB7GD58a0V1cr4",
-          "name": "WhatsApp account"
+          "id": "xs6dxP46VcoQ7CDz",
+          "name": "WhatsApp account 3"
         }
       }
     },
@@ -662,7 +662,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 35
   },
-  "versionId": "44651a23-2a07-48a6-8b73-592eae860a10",
+  "versionId": "4d92d2bb-70b1-4878-bcd2-320c52eea251",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
