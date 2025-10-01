@@ -88,7 +88,7 @@
       "typeVersion": 4.2,
       "position": [
         192,
-        192
+        184
       ],
       "id": "a415a098-c624-4214-8ad9-c8e61bc408ab",
       "name": "Commit Request",
@@ -161,7 +161,7 @@
       "typeVersion": 1,
       "position": [
         640,
-        528
+        520
       ],
       "id": "c169e36f-79dc-4de4-878e-027a011ae0dc",
       "name": "Get Last Saved Commit"
@@ -304,7 +304,7 @@
         "operation": "send",
         "phoneNumberId": "799026853297065",
         "recipientPhoneNumber": "+598 93315227",
-        "textBody": "={{ $json.cleanedText }}",
+        "textBody": "={{ $json.text }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.whatsApp",
@@ -384,7 +384,7 @@
       "typeVersion": 4.2,
       "position": [
         1760,
-        432
+        424
       ],
       "id": "dc58ebef-a2cf-4ae2-a085-eee4d078bb5f",
       "name": "Commit Info Request",
@@ -397,7 +397,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files, commit } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nWrite a WhatsApp-ready plain text message (max 4 lines) summarizing the commit below.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommitter: ${commit.committer.name}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nRules:\n- Output must be a single plain text block (no titles, subtitles, lists, or formatting).\n- Always start with: \"[Committer] made commit in [owner/repo].\"\n- If committer name contains \"bot\", replace it with \"An Automated Maintainer\".\n- Otherwise, mention the committer by their full name.\n- Use the committer’s username when referencing them.\n- Keep it natural and concise, maximum 7 lines of text.\n- End the message with the commit URL.\n`;\n\n  return { json: { prompt } };\n});\n"
+        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files, commit } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nWrite a WhatsApp-ready plain text message (max 4 lines) summarizing the commit below.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommitter: ${commit.author.name}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nRules:\n- Output must be a single plain text block (no titles, subtitles, lists, or formatting).\n- Always start with: \"[Committer] made commit in [owner/repo].\"\n- If committer name contains \"bot\", replace it with \"An Automated Maintainer\".\n- Otherwise, mention the committer by their full name.\n- Use the committer’s username when referencing them.\n- Keep it natural and concise, maximum 7 lines of text.\n- End the message with the commit URL.\n`;\n\n  return { json: { prompt } };\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -443,7 +443,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return items.map(item => {\n    let text = item.json.content?.parts?.[0]?.text || \"\";\n\n    // Remove first and last double quotes if they exist\n    if (text.startsWith('\"') && text.endsWith('\"')) {\n        text = text.slice(1, -1);\n    }\n\n    return { json: { cleanedText: text } };\n});\n"
+        "jsCode": "return items.map(item => {\n    let text = item.json.content?.parts?.[0]?.text || \"\";\n\n    // Remove outer quotes if they exist\n    if (text.startsWith('\"') && text.endsWith('\"')) {\n        text = text.slice(1, -1);\n    }\n\n    // Replace all escaped newlines (\\n) with spaces\n    text = text.replace(/\\\\n/g, \" \");\n\n    // Remove any actual newline characters\n    text = text.replace(/\\n/g, \" \");\n\n    // Collapse multiple spaces into a single space\n    text = text.replace(/\\s+/g, \" \").trim();\n\n    return { json: { text } };\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -682,7 +682,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 35
   },
-  "versionId": "4d0ee9cf-5e22-41cb-980a-3ced728b26f7",
+  "versionId": "a3db935a-9ec9-4b4c-a455-b9e21824b092",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
