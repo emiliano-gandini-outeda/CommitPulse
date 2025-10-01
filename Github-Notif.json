@@ -397,7 +397,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files, commit } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nSummarize the following GitHub commit in a maximum of 5 lines for a WhatsApp notification.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommitter: ${commit.committer.name}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nGenerate a concise summary highlighting the main changes.\n\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOuput everything in the same line.\n\nMake sure to mention the commiter. If commiter is an bot, say \"An Automated Maintainer\". \n\nUse the commiter username to mention him. Never say \"the commiter\" or \"a contributor\".\n\nJust pure text.\n\nInsert the commit URL at the end of the message.\n`;\n\n  return { json: { prompt } };\n});\n"
+        "jsCode": "// Input: each item has owner, repo, html_url, commit_message, files\nconst items = $input.all();\n\nreturn items.map(item => {\n  const { owner, repo, html_url, commit_message, files, commit } = item.json;\n\n  // Handle commits without any changed files\n  const filesList = (files || [])\n    .map(f => {\n      const patchSnippet = f.patch ? `\\nPatch:\\n${f.patch}` : '';\n      return `- ${f.filename} (${f.status})${patchSnippet}`;\n    })\n    .join('\\n\\n');\n\n  // Construct the final prompt for the AI\n  const prompt = `\nYou are an expert software engineer assistant. \nWrite a WhatsApp-ready plain text message (max 4 lines) summarizing the commit below.\n\nRepository: ${owner}/${repo}\nCommit URL: ${html_url}\nCommitter: ${commit.committer.name}\nCommit message: ${commit_message}\nFiles changed:\n${filesList || '- No files changed'}\n\nRules:\n- Output must be a single plain text block (no titles, subtitles, lists, or formatting).\n- Always start with: \"[Committer] made commit in [owner/repo].\"\n- If committer name contains \"bot\", replace it with \"An Automated Maintainer\".\n- Otherwise, mention the committer by their full name.\n- Use the committer’s username when referencing them.\n- Keep it natural and concise, maximum 7 lines of text.\n- End the message with the commit URL.\n`;\n\n  return { json: { prompt } };\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -418,10 +418,6 @@
         },
         "messages": {
           "values": [
-            {
-              "content": "You are an expert software engineer assistant. \nYour task is to read GitHub commits including the commit message and the list of changed files, and generate a detailed summary of the commit. \nThe summary must be:\n- Include the name of the repo owner, the repo name and the committer in the following format as a title: Committer made commit in owner/repo.\n- Clear and readable for a semi-technical audience.\n- Include the main changes made, without extra detail.\n- Less that 100 words.\n\nStart the message with the title, then the summary. Don't make a \"summary\" subtitle, just write the summary. \n\nOutput everything in the same line.\n\nMake sure to mention the committer, doesn't matter if its a person or a bot, just pass the committer's name as you receive it.\n\nUse the committer username to mention him. Never say \"the committer\" or \"a contributor\".\n\nJust pure text. Don't use format elements like \"\\n\".\n\nInsert the commit URL at the end of the message.",
-              "role": "model"
-            },
             {
               "content": "={{$json.prompt}}"
             }
@@ -447,7 +443,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return items.map(item => {\n    const text = item.json.content?.parts?.[0]?.text;\n    if (!text) return { json: { cleanedText: \"\" } };\n\n    // Remove first and last quote if they exist\n    let cleaned = text;\n    if (cleaned.startsWith('\"') && cleaned.endsWith('\"')) {\n        cleaned = cleaned.slice(1, -1);\n    }\n\n    return { json: { cleanedText: cleaned } };\n});\n"
+        "jsCode": "return items.map(item => {\n    let text = item.json.content?.parts?.[0]?.text || \"\";\n\n    // Remove first and last double quotes if they exist\n    if (text.startsWith('\"') && text.endsWith('\"')) {\n        text = text.slice(1, -1);\n    }\n\n    return { json: { cleanedText: text } };\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -686,7 +682,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 35
   },
-  "versionId": "6bd4ae4b-5fed-4cd1-9314-4e82092a82b4",
+  "versionId": "4d0ee9cf-5e22-41cb-980a-3ced728b26f7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
