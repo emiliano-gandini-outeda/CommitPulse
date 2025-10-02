@@ -53,6 +53,9 @@ This n8n workflow monitors GitHub repositories for new commits and sends notific
 
 ## Configuration
 
+### Schedule
+The workflow runs automatically every minute to check for repository updates.
+
 ### Repositories Monitored
 - All public repositories for the configured GitHub user
 - All repositories starred by the configured GitHub user
