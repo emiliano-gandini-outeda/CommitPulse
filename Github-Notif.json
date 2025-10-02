@@ -185,7 +185,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all().map(i => i.json);\n\nconst input1 = items.find(i => i._source === \"input1\");\nconst input2 = items.find(i => i._source === \"input2\");\n\nif (!input1 || !input2) {\n  return [];\n}\n\nreturn [\n  {\n    json: {\n      owner: input2.owner,\n      repo: input2.repo,\n      sha: input1.sha,                 // sha del input1\n      html_url: input1.html_url,       // url del input1\n      commit_message: input1.commit_message, // mensaje del input1\n      notification: true\n    }\n  }\n];\n"
+        "jsCode": "const items = $input.all().map(i => i.json);\n\n// Separate input1 and input2 items\nconst input1Items = items.filter(i => i._source === \"input1\");\nconst input2Items = items.filter(i => i._source === \"input2\");\n\n// Build a map of input2 by owner/repo for quick lookup\nconst input2Map = {};\nfor (const item of input2Items) {\n    const key = `${item.owner}/${item.repo}`;\n    input2Map[key] = item;\n}\n\nconst results = [];\n\nfor (const item1 of input1Items) {\n    const key = `${item1.owner}/${item1.repo}`;\n    const item2 = input2Map[key];\n\n    if (item2) {\n        // If repo exists in input2, take owner/repo from input2 but sha/html_url/commit_message from input1\n        results.push({\n            json: {\n                owner: item2.owner,\n                repo: item2.repo,\n                sha: item1.sha,\n                html_url: item1.html_url,\n                commit_message: item1.commit_message,\n                notification: true\n            }\n        });\n    } else {\n        // If repo does not exist in input2, still return input1 with notification true\n        results.push({\n            json: {\n                owner: item1.owner,\n                repo: item1.repo,\n                sha: item1.sha,\n                html_url: item1.html_url,\n                commit_message: item1.commit_message,\n                notification: true\n            }\n        });\n    }\n}\n\nreturn results;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -660,7 +660,7 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner",
