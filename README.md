@@ -16,7 +16,7 @@ This n8n workflow monitors GitHub repositories for new commits and sends notific
 ## Workflow Components
 
 ### Trigger
-- **Schedule Trigger**: Runs every minute to check for repository updates
+- **Schedule Trigger**: Runs every X minutes to check for repository updates
 
 ### Data Collection
 - **Public Repos**: Fetches list of user's public repositories from GitHub API
@@ -54,7 +54,7 @@ This n8n workflow monitors GitHub repositories for new commits and sends notific
 ## Configuration
 
 ### Schedule
-The workflow runs automatically every minute to check for repository updates.
+The workflow runs automatically every X minutes to check for repository updates.
 
 ### Repositories Monitored
 - All public repositories for the configured GitHub user

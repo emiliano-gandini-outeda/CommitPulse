@@ -12,7 +12,7 @@
       "typeVersion": 4.2,
       "position": [
         -480,
-        160
+        48
       ],
       "id": "1eaa5e8c-3534-418d-b316-0c56aa3992ac",
       "name": "Public Repos",
@@ -34,7 +34,7 @@
       "typeVersion": 4.2,
       "position": [
         -480,
-        352
+        -144
       ],
       "id": "a6a1e74c-b77e-4d92-96a1-b52ab634effa",
       "name": "Starred Repos",
@@ -53,7 +53,7 @@
       "typeVersion": 2,
       "position": [
         -32,
-        256
+        -48
       ],
       "id": "e9239c6d-3229-4760-b81d-eba4be316fa6",
       "name": "Repo Cleanup"
@@ -72,7 +72,7 @@
       "typeVersion": 1.2,
       "position": [
         -704,
-        352
+        48
       ],
       "id": "f435eca8-5a17-4033-910e-f8058f4adf0c",
       "name": "Schedule Trigger"
@@ -88,7 +88,7 @@
       "typeVersion": 4.2,
       "position": [
         192,
-        184
+        -120
       ],
       "id": "a415a098-c624-4214-8ad9-c8e61bc408ab",
       "name": "Commit Request",
@@ -107,7 +107,7 @@
       "typeVersion": 2,
       "position": [
         640,
-        256
+        -48
       ],
       "id": "fa643117-c8ae-44f2-a1a5-f0ab03562f79",
       "name": "Map Commits"
@@ -118,7 +118,7 @@
       "typeVersion": 3.2,
       "position": [
         -256,
-        256
+        -48
       ],
       "id": "1e65c5da-3354-49dd-9af2-dec1b4cf522f",
       "name": "Public + Starred"
@@ -133,7 +133,7 @@
       "typeVersion": 3.2,
       "position": [
         416,
-        256
+        -48
       ],
       "id": "02435bfe-058f-4f93-ac77-b1e8708dc9b3",
       "name": "Repo + Commits"
@@ -148,6 +148,7 @@
           "cachedResultName": "Github Tracking",
           "cachedResultUrl": "/projects/Pf61PhppcQlVLO9Y/datatables/NmxaJpHLDd67PU5G"
         },
+        "matchType": "allConditions",
         "filters": {
           "conditions": [
             {
@@ -161,31 +162,36 @@
       "typeVersion": 1,
       "position": [
         640,
-        520
+        216
       ],
       "id": "c169e36f-79dc-4de4-878e-027a011ae0dc",
       "name": "Get Last Saved Commit"
     },
     {
-      "parameters": {},
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "sha",
+        "joinMode": "keepNonMatches",
+        "options": {}
+      },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
         864,
-        352
+        24
       ],
       "id": "295a5f00-e956-4210-9c36-0f4c4f977367",
       "name": "New + Old Commits"
     },
     {
       "parameters": {
-        "jsCode": "// Combine all inputs (commits + table rows)\nconst all = $input.all();\n\n// Group by \"owner/repo\"\nconst grouped = {};\nfor (const item of all) {\n  const { owner, repo, sha, html_url, notification, commit_message } = item.json;\n  const key = `${owner}/${repo}`;\n  if (!grouped[key]) grouped[key] = [];\n  grouped[key].push({ owner, repo, sha, html_url, notification, commit_message });\n}\n\n// For each repo, decide the output\nconst results = [];\nfor (const key in grouped) {\n  const items = grouped[key];\n\n  if (items.length === 1) {\n    // New repo (only commit present, no table entry)\n    const { owner, repo, sha, html_url, commit_message } = items[0];\n    results.push({ \n      json: { owner, repo, sha, html_url, commit_message, notification: true } \n    });\n  } else {\n    // Repo exists in both commits + table\n    const commit = items.find(i => i.sha); // from commits\n    const table = items.find(i => i.notification !== undefined); // from table\n\n    const notification = commit.sha !== table.sha;\n    results.push({\n      json: { \n        owner: commit.owner, \n        repo: commit.repo, \n        sha: commit.sha, \n        html_url: commit.html_url, \n        commit_message: commit.commit_message || null,\n        notification \n      }\n    });\n  }\n}\n\nreturn results;\n"
+        "jsCode": "const items = $input.all().map(i => i.json);\n\nconst input1 = items.find(i => i._source === \"input1\");\nconst input2 = items.find(i => i._source === \"input2\");\n\nif (!input1 || !input2) {\n  return [];\n}\n\nreturn [\n  {\n    json: {\n      owner: input2.owner,\n      repo: input2.repo,\n      sha: input1.sha,                 // sha del input1\n      html_url: input1.html_url,       // url del input1\n      commit_message: input1.commit_message, // mensaje del input1\n      notification: true\n    }\n  }\n];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1088,
-        352
+        24
       ],
       "id": "f663fe28-fa9a-46ca-a64f-9fad22b57670",
       "name": "Check Commits Diffs"
@@ -293,8 +299,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1,
       "position": [
-        1312,
-        352
+        1536,
+        192
       ],
       "id": "a8069d0a-49a6-466d-bc2d-68f211e5ae75",
       "name": "Save New Commits"
@@ -310,8 +316,8 @@
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
       "position": [
-        3008,
-        352
+        2560,
+        -48
       ],
       "id": "0aa2e430-3007-44d3-a2cc-7a19e9d935fd",
       "name": "Send message",
@@ -326,40 +332,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "d4929217-07c4-4376-806c-515a6697ad85",
-              "leftValue": "={{ $json.notification }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2.2,
-      "position": [
-        1536,
-        352
-      ],
-      "id": "ad7bce87-818f-4915-a394-532fcd929253",
-      "name": "Filter"
-    },
-    {
-      "parameters": {
         "mode": "combine",
         "combineBy": "combineByPosition",
         "options": {}
@@ -367,8 +339,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1984,
-        352
+        1536,
+        -48
       ],
       "id": "727ba6ff-295f-4041-99aa-6c9031686eb8",
       "name": "Commit Info + Repo info"
@@ -383,8 +355,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1760,
-        424
+        1312,
+        -120
       ],
       "id": "dc58ebef-a2cf-4ae2-a085-eee4d078bb5f",
       "name": "Commit Info Request",
@@ -402,11 +374,24 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2208,
-        352
+        1760,
+        -48
       ],
       "id": "2a06fa4d-be31-4781-aa15-9b04ab8d96c3",
       "name": "Create Prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    let text = item.json.content?.parts?.[0]?.text || \"\";\n\n    // Remove outer quotes if they exist\n    if (text.startsWith('\"') && text.endsWith('\"')) {\n        text = text.slice(1, -1);\n    }\n\n    // Replace all escaped newlines (\\n) with spaces\n    text = text.replace(/\\\\n/g, \" \");\n\n    // Remove any actual newline characters\n    text = text.replace(/\\n/g, \" \");\n\n    // Collapse multiple spaces into a single space\n    text = text.replace(/\\s+/g, \" \").trim();\n\n    return { json: { text } };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        -48
+      ],
+      "id": "db9d391a-7b01-4c04-a016-751beb7784f2",
+      "name": "Format Output"
     },
     {
       "parameters": {
@@ -429,8 +414,8 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
       "position": [
-        2432,
-        352
+        1984,
+        -48
       ],
       "id": "83d0479d-9532-4745-993f-e9b64f9d844a",
       "name": "Create Message",
@@ -443,16 +428,16 @@
     },
     {
       "parameters": {
-        "jsCode": "return items.map(item => {\n    let text = item.json.content?.parts?.[0]?.text || \"\";\n\n    // Remove outer quotes if they exist\n    if (text.startsWith('\"') && text.endsWith('\"')) {\n        text = text.slice(1, -1);\n    }\n\n    // Replace all escaped newlines (\\n) with spaces\n    text = text.replace(/\\\\n/g, \" \");\n\n    // Remove any actual newline characters\n    text = text.replace(/\\n/g, \" \");\n\n    // Collapse multiple spaces into a single space\n    text = text.replace(/\\s+/g, \" \").trim();\n\n    return { json: { text } };\n});\n"
+        "jsCode": "const items = $input.all().map(i => i.json);\n\nreturn items.map(item => ({\n  json: {\n    ...item,\n    notification: false\n  }\n}));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2784,
-        352
+        1312,
+        192
       ],
-      "id": "db9d391a-7b01-4c04-a016-751beb7784f2",
-      "name": "Format Output"
+      "id": "dac1e729-1b5f-4deb-a313-bf163da54023",
+      "name": "Set Notification To False"
     }
   ],
   "pinData": {},
@@ -463,7 +448,7 @@
           {
             "node": "Public + Starred",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -474,7 +459,7 @@
           {
             "node": "Public + Starred",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -586,27 +571,10 @@
       "main": [
         [
           {
-            "node": "Save New Commits",
+            "node": "Set Notification To False",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Save New Commits": {
-      "main": [
-        [
-          {
-            "node": "Filter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter": {
-      "main": [
-        [
+          },
           {
             "node": "Commit Info Request",
             "type": "main",
@@ -618,6 +586,11 @@
             "index": 1
           }
         ]
+      ]
+    },
+    "Save New Commits": {
+      "main": [
+        []
       ]
     },
     "Commit Info + Repo info": {
@@ -653,6 +626,17 @@
         ]
       ]
     },
+    "Format Output": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Create Message": {
       "main": [
         [
@@ -664,11 +648,11 @@
         ]
       ]
     },
-    "Format Output": {
+    "Set Notification To False": {
       "main": [
         [
           {
-            "node": "Send message",
+            "node": "Save New Commits",
             "type": "main",
             "index": 0
           }
@@ -676,13 +660,13 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 35
   },
-  "versionId": "a3db935a-9ec9-4b4c-a455-b9e21824b092",
+  "versionId": "2f2806a1-a6f5-4055-a9b1-c035b00dbadc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "eef091074e5319af93e47f9691310ddeae256ba7798542d83f1c3e34eebbe161"
